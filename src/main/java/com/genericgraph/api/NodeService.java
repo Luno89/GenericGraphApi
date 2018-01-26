@@ -12,8 +12,24 @@ class NodeService {
     public boolean write(GenericNode gNode) {
         Transaction tx = db.beginTx();
         Node node = db.createNode();
-        node.addLabel(DynamicLabel.label(gNode.label.get(0)));
+
+        addLabels(node, gNode);
+
+        if (gNode.values != null) {
+            gNode.values.forEach((k,v) ->{
+                node.setProperty(k, v);
+            });
+        }
+
         tx.success();
         return true;
+    }
+
+    private void addLabels(Node node, GenericNode gNode) {
+        if (gNode.label != null) {
+            gNode.label.forEach(it -> {
+                node.addLabel(Label.label(it));
+            });
+        }
     }
 }

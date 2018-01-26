@@ -24,7 +24,7 @@ class NodeServiceSpec extends Specification {
         db.shutdown()
     }
 
-    def "neo4f sanity check" () {
+    def "neo4j sanity check" () {
         given:
         Node n = null        
         try {
@@ -44,11 +44,27 @@ class NodeServiceSpec extends Specification {
         foundNode.getProperty('name') == 'beth'
     }
 
-    def "NodeService can write a label" () {
+    def "can write a label" () {
         when:
         nodeService.write(new GenericNode(label: ['person']))
 
         then:
         db.execute('MATCH (p:person) RETURN p').size() == 1
+    }
+
+    def "can write more than one label" () {
+        when:
+        nodeService.write(new GenericNode(label: ['person', 'furry']))
+
+        then:
+        db.execute('MATCH (p:person) RETURN labels(p) as p').next()['p'].size() == 2
+    }
+
+    def "can write a value" () {
+        when:
+        nodeService.write(new GenericNode(values: ['firstname': 'zach']))
+
+        then:
+        db.execute('MATCH (p) WHERE p.firstname = "zach" RETURN p').next()['p'].getProperty('firstname') == 'zach'
     }
 }
