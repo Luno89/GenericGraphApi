@@ -60,11 +60,28 @@ class NodeServiceSpec extends Specification {
         db.execute('MATCH (p:person) RETURN labels(p) as p').next()['p'].size() == 2
     }
 
-    def "can write a value" () {
+    def "can write values" () {
         when:
-        nodeService.write(new GenericNode(values: ['firstname': 'zach']))
+        nodeService.write(new GenericNode(values: ['firstname': 'zach', 'lastname':'zeman']))
 
         then:
-        db.execute('MATCH (p) WHERE p.firstname = "zach" RETURN p').next()['p'].getProperty('firstname') == 'zach'
+        Node zach = db.execute('MATCH (p) WHERE p.firstname = "zach" RETURN p').next()['p']
+        zach.getProperty('firstname') == 'zach'
+        zach.getProperty('lastname') == 'zeman'
+    }
+
+    def "can write relationships" () {
+        given:
+        GenericNode zach = new GenericNode(label:['person'], values:['name':'zach'])
+        GenericNode anna = new GenericNode(label:['person'], values:['name':'anna'])
+        nodeService.write(zach)
+        nodeService.write(anna)
+
+        when:
+        nodeService.writeRelationship(zach, new Relationship(name:'knows'), anna)
+
+        then:
+        Node zachsNode = db.execute('MATCH (p) WHERE p.name = "zach" RETURN p').next()['p']
+        zachsNode.getRelationships().iterator().next().getStartNode().equals(zachsNode)
     }
 }
