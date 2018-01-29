@@ -40,11 +40,9 @@ class NodeService {
 
     public boolean writeRelationship(GenericNode firstNode, Relationship relationship, GenericNode secondNode) {
         Transaction tx = db.beginTx();
-        Entry firstNodeName = firstNode.values.entrySet().iterator().next();
-        Entry secondNodeName = secondNode.values.entrySet().iterator().next();
-
-        Node firstFoundNode = db.findNodes(Label.label(firstNode.label.get(0)), firstNodeName.getKey().toString(), firstNodeName.getValue()).next();
-        Node secondFoundNode = db.findNodes(Label.label(secondNode.label.get(0)), secondNodeName.getKey().toString(), secondNodeName.getValue()).next();
+        
+        Node firstFoundNode = findNode(firstNode);
+        Node secondFoundNode = findNode(secondNode);
 
         org.neo4j.graphdb.Relationship graphRelationship = firstFoundNode.createRelationshipTo(secondFoundNode, RelationshipType.withName(relationship.name));
 
@@ -53,8 +51,13 @@ class NodeService {
                 graphRelationship.setProperty(k, v);;
             });
         }
-        
+
         tx.success();
         return true;
+    }
+
+    private Node findNode(GenericNode node) {
+        Entry nodeName = node.values.entrySet().iterator().next();
+        return db.findNodes(Label.label(node.label.get(0)), nodeName.getKey().toString(), nodeName.getValue()).next();
     }
 }
