@@ -45,8 +45,15 @@ class NodeService {
 
         Node firstFoundNode = db.findNodes(Label.label(firstNode.label.get(0)), firstNodeName.getKey().toString(), firstNodeName.getValue()).next();
         Node secondFoundNode = db.findNodes(Label.label(secondNode.label.get(0)), secondNodeName.getKey().toString(), secondNodeName.getValue()).next();
+
+        org.neo4j.graphdb.Relationship graphRelationship = firstFoundNode.createRelationshipTo(secondFoundNode, RelationshipType.withName(relationship.name));
+
+        if(relationship.properties != null) {
+            relationship.properties.forEach( (String k, Object v) -> {
+                graphRelationship.setProperty(k, v);;
+            });
+        }
         
-        firstFoundNode.createRelationshipTo(secondFoundNode, RelationshipType.withName(relationship.name));
         tx.success();
         return true;
     }

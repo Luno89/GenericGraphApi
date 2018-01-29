@@ -84,4 +84,21 @@ class NodeServiceSpec extends Specification {
         Node zachsNode = db.execute('MATCH (p) WHERE p.name = "zach" RETURN p').next()['p']
         zachsNode.getRelationships().iterator().next().getStartNode().equals(zachsNode)
     }
+
+    def "can write relationship properties" () {
+        given:
+        GenericNode zach = new GenericNode(label:['person'], values:['name':'zach'])
+        GenericNode anna = new GenericNode(label:['person'], values:['name':'anna'])
+        nodeService.write(zach)
+        nodeService.write(anna)
+
+        when:
+        nodeService.writeRelationship(zach, new Relationship(name:'knows', properties:['years':3]), anna)
+
+        then:
+        Node zachsNode = db.execute('MATCH (p) WHERE p.name = "zach" RETURN p').next()['p']
+        org.neo4j.graphdb.Relationship zachKnowingAnna = zachsNode.getRelationships().iterator().next()
+        zachKnowingAnna.getStartNode().equals(zachsNode)
+        zachKnowingAnna.getProperty('years') == 3
+    }
 }
