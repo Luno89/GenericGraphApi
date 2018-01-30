@@ -101,4 +101,34 @@ class NodeServiceSpec extends Specification {
         zachKnowingAnna.getStartNode().equals(zachsNode)
         zachKnowingAnna.getProperty('years') == 3
     }
+
+    def "can find nodes on multiple values" () {
+        given:
+        GenericNode zachZeman = new GenericNode(label:['person'], values:['name':'zach','last':'zeman'])
+        GenericNode zachFish = new GenericNode(label:['person'], values:['name':'zach','last':'fish'])
+        nodeService.write(zachZeman)
+        nodeService.write(zachFish)
+
+        when:
+        Node zachFishsNode = nodeService.find(zachFish)
+
+        then:
+        zachFishsNode.getProperty('name') == 'zach'
+        zachFishsNode.getProperty('last') == 'fish'
+    }
+
+    def "can find nodes on multiple labels" () {
+                given:
+        GenericNode zachZeman = new GenericNode(label:['person', 'furry'], values:['name':'zach'])
+        GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach'])
+        nodeService.write(zachZeman)
+        nodeService.write(zachFish)
+
+        when:
+        Node zachFishsNode = nodeService.find(zachFish)
+
+        then:
+        zachFishsNode.hasLabel(Label.label('otaku'))
+        zachFishsNode.getProperty('name') == 'zach'
+    }
 }

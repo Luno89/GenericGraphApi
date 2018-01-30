@@ -40,9 +40,9 @@ class NodeService {
 
     public boolean writeRelationship(GenericNode firstNode, Relationship relationship, GenericNode secondNode) {
         Transaction tx = db.beginTx();
-        
-        Node firstFoundNode = findNode(firstNode);
-        Node secondFoundNode = findNode(secondNode);
+
+        Node firstFoundNode = find(firstNode);
+        Node secondFoundNode = find(secondNode);
 
         org.neo4j.graphdb.Relationship graphRelationship = firstFoundNode.createRelationshipTo(secondFoundNode, RelationshipType.withName(relationship.name));
 
@@ -56,8 +56,38 @@ class NodeService {
         return true;
     }
 
-    private Node findNode(GenericNode node) {
-        Entry nodeName = node.values.entrySet().iterator().next();
-        return db.findNodes(Label.label(node.label.get(0)), nodeName.getKey().toString(), nodeName.getValue()).next();
+    public Node find(GenericNode node) {
+        String queryStart = "MATCH (n) WHERE ";
+        String queryEnd = "RETURN n";
+        
+        String values = getValuesString(node);
+        String labels = getLabelString(node);
+
+        String query = queryStart + values + labels + queryEnd;
+        return (Node)db.execute(query).next().get("n");
+    }
+
+    private String getValuesString(GenericNode node) {
+        StringBuilder values = new StringBuilder();
+        node.values.forEach((k,v) -> {
+            values.append("n." + k + " = '" + v + "' AND ");
+        });
+
+        String query = "";
+        if (values.length() > 4) {
+            query = values.toString().substring(0, values.length()-4);
+        }
+        return query;
+    }
+
+    private String getLabelString(GenericNode node) {
+        if (node.label.size() > 0) {
+            StringBuilder labels = new StringBuilder();
+            node.label.forEach(s -> {
+                labels.append(":" + s);
+            });
+            return "AND n" + labels.toString() + " ";
+        }
+        return "";
     }
 }
