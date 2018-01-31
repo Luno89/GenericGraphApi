@@ -1,7 +1,6 @@
 package com.genericgraph.api;
 
-import java.util.Map.Entry;
-
+import java.util.ArrayList;
 import org.neo4j.graphdb.*;
 
 class NodeService {
@@ -46,9 +45,9 @@ class NodeService {
 
         org.neo4j.graphdb.Relationship graphRelationship = firstFoundNode.createRelationshipTo(secondFoundNode, RelationshipType.withName(relationship.name));
 
-        if(relationship.properties != null) {
-            relationship.properties.forEach( (String k, Object v) -> {
-                graphRelationship.setProperty(k, v);;
+        if(relationship.values != null) {
+            relationship.values.forEach( (String k, Object v) -> {
+                graphRelationship.setProperty(k, v);
             });
         }
 
@@ -89,5 +88,17 @@ class NodeService {
             return "AND n" + labels.toString() + " ";
         }
         return "";
+    }
+
+    public ArrayList<org.neo4j.graphdb.Relationship> findRelationships(String name) {
+        ArrayList<org.neo4j.graphdb.Relationship> relationshipResults = new ArrayList<>();
+
+        Result result = db.execute("MATCH ()-[n:"+ name + "]-() RETURN n");
+        ResourceIterator<org.neo4j.graphdb.Relationship> relationships = result.columnAs("n");
+        relationships.forEachRemaining(it -> {
+            relationshipResults.add(it);
+        });
+
+        return relationshipResults;
     }
 }

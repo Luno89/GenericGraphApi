@@ -89,11 +89,14 @@ class NodeServiceSpec extends Specification {
         given:
         GenericNode zach = new GenericNode(label:['person'], values:['name':'zach'])
         GenericNode anna = new GenericNode(label:['person'], values:['name':'anna'])
+        Relationship zachKnwsAnna = new Relationship();
+        zachKnwsAnna.name = 'knows'
+        zachKnwsAnna.values = ['years':3, 'distance':7]
         nodeService.write(zach)
         nodeService.write(anna)
 
         when:
-        nodeService.writeRelationship(zach, new Relationship(name:'knows', properties:['years':3]), anna)
+        nodeService.writeRelationship(zach, zachKnwsAnna, anna)
 
         then:
         Node zachsNode = db.execute('MATCH (p) WHERE p.name = "zach" RETURN p').next()['p']
@@ -118,7 +121,7 @@ class NodeServiceSpec extends Specification {
     }
 
     def "can find nodes on multiple labels" () {
-                given:
+        given:
         GenericNode zachZeman = new GenericNode(label:['person', 'furry'], values:['name':'zach'])
         GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach'])
         nodeService.write(zachZeman)
@@ -130,5 +133,20 @@ class NodeServiceSpec extends Specification {
         then:
         zachFishsNode.hasLabel(Label.label('otaku'))
         zachFishsNode.getProperty('name') == 'zach'
+    }
+
+    def "can find nodes on relationship name" () {
+        given:
+        GenericNode zachZeman = new GenericNode(label:['person', 'furry'], values:['name':'zach'])
+        GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach'])
+        nodeService.write(zachZeman)
+        nodeService.write(zachFish)
+        nodeService.writeRelationship(zachZeman, new Relationship(name:'knows'), zachFish)
+
+        when:
+        org.neo4j.graphdb.Relationship zachKnowingZach = nodeService.findRelationships('knows')[0]
+
+        then:
+        zachKnowingZach.getType().name() == 'knows'
     }
 }
