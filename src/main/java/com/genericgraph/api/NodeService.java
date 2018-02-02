@@ -2,6 +2,7 @@ package com.genericgraph.api;
 
 import java.util.ArrayList;
 import org.neo4j.graphdb.*;
+import java.util.HashMap;
 
 class NodeService {
     protected GraphDatabaseService db;
@@ -59,22 +60,22 @@ class NodeService {
         String queryStart = "MATCH (n) WHERE ";
         String queryEnd = "RETURN n";
         
-        String values = getValuesString(node);
+        String values = getValuesString(node.values, "=");
         String labels = getLabelString(node);
 
         String query = queryStart + values + labels + queryEnd;
         return (Node)db.execute(query).next().get("n");
     }
 
-    private String getValuesString(GenericNode node) {
-        StringBuilder values = new StringBuilder();
-        node.values.forEach((k,v) -> {
-            values.append("n." + k + " = '" + v + "' AND ");
+    private String getValuesString(HashMap<String,Object> values, String operator) {
+        StringBuilder valuesString = new StringBuilder();
+        values.forEach((k,v) -> {
+            valuesString.append("n." + k + " "+ operator +" '" + v + "' AND ");
         });
 
         String query = "";
-        if (values.length() > 4) {
-            query = values.toString().substring(0, values.length()-4);
+        if (valuesString.length() > 4) {
+            query = valuesString.toString().substring(0, valuesString.length()-4);
         }
         return query;
     }
@@ -94,6 +95,24 @@ class NodeService {
         ArrayList<org.neo4j.graphdb.Relationship> relationshipResults = new ArrayList<>();
 
         Result result = db.execute("MATCH ()-[n:"+ name + "]-() RETURN n");
+        ResourceIterator<org.neo4j.graphdb.Relationship> relationships = result.columnAs("n");
+        relationships.forEachRemaining(it -> {
+            relationshipResults.add(it);
+        });
+
+        return relationshipResults;
+    }
+
+    public ArrayList<org.neo4j.graphdb.Relationship> findRelationships(String name, String operator, HashMap<String,Object> values) {
+        ArrayList<org.neo4j.graphdb.Relationship> relationshipResults = new ArrayList<>();
+
+        String whereString = "";
+        if(values != null && values.size() > 0) {
+            whereString = "WHERE " + getValuesString(values, operator);
+        }
+
+        Result result = db.execute("MATCH ()-[n:"+ name + "]-() " + whereString + "RETURN n");
+        
         ResourceIterator<org.neo4j.graphdb.Relationship> relationships = result.columnAs("n");
         relationships.forEachRemaining(it -> {
             relationshipResults.add(it);

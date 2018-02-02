@@ -141,12 +141,34 @@ class NodeServiceSpec extends Specification {
         GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach'])
         nodeService.write(zachZeman)
         nodeService.write(zachFish)
-        nodeService.writeRelationship(zachZeman, new Relationship(name:'knows'), zachFish)
+
+        nodeService.writeRelationship(zachZeman, new Relationship(name:'knows',), zachFish)
 
         when:
-        org.neo4j.graphdb.Relationship zachKnowingZach = nodeService.findRelationships('knows')[0]
+        org.neo4j.graphdb.Relationship zachKnowingZachInWV = nodeService.findRelationships('knows')[0]
 
         then:
-        zachKnowingZach.getType().name() == 'knows'
+        zachKnowingZachInWV.getType().name() == 'knows'
+    }
+
+    def "can find nodes on relationship properties" () {
+        given:
+        GenericNode zachZeman = new GenericNode(label:['person', 'furry'], values:['name':'zach'])
+        GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach'])
+        Relationship zzKnowsZfInMo = new Relationship(name:'knows')
+        zzKnowsZfInMo.values = ['years':7, 'where':'MO']
+        Relationship zzKnowsZfInWV = new Relationship(name:'knows')
+        zzKnowsZfInMo.values = ['years':10, 'where':'WV']
+        nodeService.write(zachZeman)
+        nodeService.write(zachFish)
+        nodeService.writeRelationship(zachZeman, zzKnowsZfInMo, zachFish)
+        nodeService.writeRelationship(zachZeman, zzKnowsZfInWV, zachFish)
+
+        when:
+        org.neo4j.graphdb.Relationship zachKnowingZachInWV = nodeService.findRelationships('knows','>',['where':9])[0]
+
+        then:
+        zachKnowingZachInWV.getType().name() == 'knows'
+        zachKnowingZachInWV.getProperty('where') == 'WV'
     }
 }
