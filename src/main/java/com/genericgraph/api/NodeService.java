@@ -3,6 +3,7 @@ package com.genericgraph.api;
 import java.util.ArrayList;
 import org.neo4j.graphdb.*;
 import java.util.HashMap;
+import com.genericgraph.api.domain.*;
 
 class NodeService {
     protected GraphDatabaseService db;
@@ -38,7 +39,7 @@ class NodeService {
         }
     }
 
-    public boolean writeRelationship(GenericNode firstNode, Relationship relationship, GenericNode secondNode) {
+    public boolean writeRelationship(GenericNode firstNode, GenericRelationship relationship, GenericNode secondNode) {
         Transaction tx = db.beginTx();
 
         Node firstFoundNode = find(firstNode);
@@ -64,6 +65,7 @@ class NodeService {
         String labels = getLabelString(node);
 
         String query = queryStart + values + labels + queryEnd;
+        
         return (Node)db.execute(query).next().get("n");
     }
 

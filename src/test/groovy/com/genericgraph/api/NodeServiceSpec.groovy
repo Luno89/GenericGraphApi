@@ -3,11 +3,10 @@ package com.genericgraph.api;
 import spock.lang.Specification
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.neo4j.test.rule.TestDirectory;
 import org.junit.Rule;
+import com.genericgraph.api.domain.*;
 
 class NodeServiceSpec extends Specification {
     @Rule
@@ -78,7 +77,7 @@ class NodeServiceSpec extends Specification {
         nodeService.write(anna)
 
         when:
-        nodeService.writeRelationship(zach, new Relationship(name:'knows'), anna)
+        nodeService.writeRelationship(zach, new GenericRelationship(name:'knows'), anna)
 
         then:
         Node zachsNode = db.execute('MATCH (p) WHERE p.name = "zach" RETURN p').next()['p']
@@ -89,7 +88,7 @@ class NodeServiceSpec extends Specification {
         given:
         GenericNode zach = new GenericNode(label:['person'], values:['name':'zach'])
         GenericNode anna = new GenericNode(label:['person'], values:['name':'anna'])
-        Relationship zachKnwsAnna = new Relationship();
+        GenericRelationship zachKnwsAnna = new GenericRelationship();
         zachKnwsAnna.name = 'knows'
         zachKnwsAnna.values = ['years':3, 'distance':7]
         nodeService.write(zach)
@@ -128,11 +127,11 @@ class NodeServiceSpec extends Specification {
         nodeService.write(zachFish)
 
         when:
-        Node zachFishsNode = nodeService.find(zachFish)
+        GenericNode zachFishsNode = new GenericNode(nodeService.find(zachFish))
 
         then:
-        zachFishsNode.hasLabel(Label.label('otaku'))
-        zachFishsNode.getProperty('name') == 'zach'
+        zachFishsNode.label.contains('otaku')
+        zachFishsNode.values.get('name') == 'zach'
     }
 
     def "can find nodes on relationship name" () {
@@ -142,7 +141,7 @@ class NodeServiceSpec extends Specification {
         nodeService.write(zachZeman)
         nodeService.write(zachFish)
 
-        nodeService.writeRelationship(zachZeman, new Relationship(name:'knows',), zachFish)
+        nodeService.writeRelationship(zachZeman, new GenericRelationship(name:'knows',), zachFish)
 
         when:
         org.neo4j.graphdb.Relationship zachKnowingZachInWV = nodeService.findRelationships('knows')[0]
@@ -155,9 +154,9 @@ class NodeServiceSpec extends Specification {
         given:
         GenericNode zachZeman = new GenericNode(label:['person', 'furry'], values:['name':'zach'])
         GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach'])
-        Relationship zzKnowsZfInMo = new Relationship(name:'knows')
+        GenericRelationship zzKnowsZfInMo = new GenericRelationship(name:'knows')
         zzKnowsZfInMo.values = ['years':7, 'where':'MO']
-        Relationship zzKnowsZfInWV = new Relationship(name:'knows')
+        GenericRelationship zzKnowsZfInWV = new GenericRelationship(name:'knows')
         zzKnowsZfInMo.values = ['years':10, 'where':'WV']
         nodeService.write(zachZeman)
         nodeService.write(zachFish)

@@ -1,15 +1,15 @@
-package com.genericgraph.api;
+package com.genericgraph.api.domain;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Relationship {
-    String name;
-    HashMap<String, Object> values;
+public class GenericRelationship {
+    public String name;
+    public HashMap<String, Object> values;
 
-    public Relationship() {}
+    public GenericRelationship() {}
 
-    Relationship(Map<String,Object> map) {
+    GenericRelationship(Map<String,Object> map) {
         this.name = (String)map.get("name");
         this.values = new HashMap<String, Object>();
         map.entrySet().stream().filter(it -> it.getKey() != "name").forEach(e -> {

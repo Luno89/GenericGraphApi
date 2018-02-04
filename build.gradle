@@ -34,6 +34,7 @@ dependencies {
     testCompile "org.spockframework:spock-core:1.1-groovy-2.4"
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile group: 'org.neo4j.test', name: 'neo4j-harness', version: '3.3.2'
+    testCompile group: 'cglib', name: 'cglib-nodep', version: '3.2.6'
 }
 
 test {
