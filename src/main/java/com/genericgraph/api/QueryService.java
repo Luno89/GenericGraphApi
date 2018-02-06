@@ -10,11 +10,7 @@ class QueryService {
         this.nodeService = nodeService;
     }
     
-    void find(GenericQuery query) {
-        // GenericNode queryNode = new GenericNode();
-        // query.nodes.forEach(param -> {
-        //     queryNode.values.put(key, value);
-        // });
-        // nodeService.find();
+    GenericNode find(GenericQuery query) {
+        return new GenericNode(nodeService.find(query));
     }
 }

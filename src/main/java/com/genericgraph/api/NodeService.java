@@ -57,22 +57,53 @@ class NodeService {
         return true;
     }
 
+    //TODO:De-dup all this garbage
     public Node find(GenericNode node) {
         String queryStart = "MATCH (n) WHERE ";
         String queryEnd = "RETURN n";
         
         String values = getValuesString(node.values, "=");
         String labels = getLabelString(node);
+        String where = values != "" && labels != "" ? values + "AND " + labels : values + labels;
 
-        String query = queryStart + values + labels + queryEnd;
+        String query = queryStart + where + queryEnd;
         
         return (Node)db.execute(query).next().get("n");
+    }
+
+    public Node find(GenericQuery query) {
+        String queryStart = "MATCH (n) WHERE ";
+        String queryEnd = "RETURN n";
+
+        String values = getValuesString(query.nodes);
+
+        String where = values;
+        String queryString = queryStart + where + queryEnd;
+
+        System.out.println(queryString);
+
+        return (Node)db.execute(queryString).next().get("n");
     }
 
     private String getValuesString(HashMap<String,Object> values, String operator) {
         StringBuilder valuesString = new StringBuilder();
         values.forEach((k,v) -> {
-            valuesString.append("n." + k + " "+ operator +" '" + v + "' AND ");
+            String value = v instanceof Integer ? v.toString() : "'" + v + "'";
+            valuesString.append("n." + k + " "+ operator +" " + value + " AND ");
+        });
+
+        String query = "";
+        if (valuesString.length() > 4) {
+            query = valuesString.toString().substring(0, valuesString.length()-4);
+        }
+        return query;
+    }
+
+    private String getValuesString(ArrayList<QueryParameter> parameters) {
+        StringBuilder valuesString = new StringBuilder();
+
+        parameters.forEach((QueryParameter p) -> {
+            valuesString.append(p.toString() + " AND ");
         });
 
         String query = "";
@@ -88,7 +119,7 @@ class NodeService {
             node.label.forEach(s -> {
                 labels.append(":" + s);
             });
-            return "AND n" + labels.toString() + " ";
+            return "n" + labels.toString() + " ";
         }
         return "";
     }
@@ -113,7 +144,7 @@ class NodeService {
             whereString = "WHERE " + getValuesString(values, operator);
         }
 
-        Result result = db.execute("MATCH ()-[n:"+ name + "]-() " + whereString + "RETURN n");
+        Result result = db.execute("MATCH ()-[n:"+ name + "]-() " + whereString + " RETURN n");
         
         ResourceIterator<org.neo4j.graphdb.Relationship> relationships = result.columnAs("n");
         relationships.forEachRemaining(it -> {

@@ -134,6 +134,20 @@ class NodeServiceSpec extends Specification {
         zachFishsNode.values.get('name') == 'zach'
     }
 
+    def "can find nodes on multiple labels without values" () {
+        given:
+        GenericNode zachZeman = new GenericNode(label:['person', 'furry'])
+        GenericNode zachFish = new GenericNode(label:['person', 'otaku'])
+        nodeService.write(zachZeman)
+        nodeService.write(zachFish)
+
+        when:
+        GenericNode zachFishsNode = new GenericNode(nodeService.find(zachFish))
+
+        then:
+        zachFishsNode.label.contains('otaku')
+    }
+
     def "can find nodes on relationship name" () {
         given:
         GenericNode zachZeman = new GenericNode(label:['person', 'furry'], values:['name':'zach'])
@@ -157,17 +171,37 @@ class NodeServiceSpec extends Specification {
         GenericRelationship zzKnowsZfInMo = new GenericRelationship(name:'knows')
         zzKnowsZfInMo.values = ['years':7, 'where':'MO']
         GenericRelationship zzKnowsZfInWV = new GenericRelationship(name:'knows')
-        zzKnowsZfInMo.values = ['years':10, 'where':'WV']
+        zzKnowsZfInWV.values = ['years':10, 'where':'WV']
         nodeService.write(zachZeman)
         nodeService.write(zachFish)
         nodeService.writeRelationship(zachZeman, zzKnowsZfInMo, zachFish)
         nodeService.writeRelationship(zachZeman, zzKnowsZfInWV, zachFish)
 
         when:
-        org.neo4j.graphdb.Relationship zachKnowingZachInWV = nodeService.findRelationships('knows','>',['where':9])[0]
+        org.neo4j.graphdb.Relationship zachKnowingZachInWV = nodeService.findRelationships('knows','>',['years':9])[0]
 
         then:
         zachKnowingZachInWV.getType().name() == 'knows'
         zachKnowingZachInWV.getProperty('where') == 'WV'
+    }
+
+    def "can find nodes on generic query" () {
+        given:
+        GenericNode zachZeman = new GenericNode(label:['person', 'furry'], values:['name':'zach', 'age':32])
+        GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach', 'age':27])
+        GenericRelationship zzKnowsZfInMo = new GenericRelationship(name:'knows')
+        zzKnowsZfInMo.values = ['years':7, 'where':'MO']
+        GenericRelationship zzKnowsZfInWV = new GenericRelationship(name:'knows')
+        zzKnowsZfInWV.values = ['years':10, 'where':'WV']
+        nodeService.write(zachZeman)
+        nodeService.write(zachFish)
+        nodeService.writeRelationship(zachZeman, zzKnowsZfInMo, zachFish)
+        nodeService.writeRelationship(zachZeman, zzKnowsZfInWV, zachFish)
+
+        when:
+        org.neo4j.graphdb.Node zachZemansNode = nodeService.find(new GenericQuery(nodes:[new QueryParameter('age', '>', 30)]))
+
+        then:
+        zachZemansNode.getProperty('age') == 32
     }
 }

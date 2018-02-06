@@ -6,9 +6,10 @@ import org.neo4j.graphdb.*;
 
 class QueryServiceSpec extends Specification {
     QueryService queryService;
+    NodeService nodeService;
 
     def void setup() {
-        NodeService nodeService = Mock()
+        nodeService = Mock()
         queryService = new QueryService(nodeService)
     }
 
@@ -24,7 +25,7 @@ class QueryServiceSpec extends Specification {
         GenericNode personNode = queryService.find(query)
 
         then:
-        1 * queryService.nodeService.find(_) >> null
+        1 * nodeService.find(_) >> null
         new GenericNode(_) >> resultNode
         personNode.values['name'] == 'itsMe'
     }
