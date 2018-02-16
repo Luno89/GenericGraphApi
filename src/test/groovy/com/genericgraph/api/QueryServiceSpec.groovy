@@ -19,14 +19,12 @@ class QueryServiceSpec extends Specification {
         resultNode.label = ['Person']
         resultNode.values = ['name':'itsMe']
         GenericQuery query = new GenericQuery(nodes: [new QueryParameter('Label', '=', 'Person')])
-        GroovySpy(GenericNode, global:true)
 
         when:
         GenericNode personNode = queryService.find(query)
 
         then:
-        1 * nodeService.find(_) >> null
-        new GenericNode(_) >> resultNode
+        1 * nodeService.findGeneric(_) >> resultNode
         personNode.values['name'] == 'itsMe'
     }
 }

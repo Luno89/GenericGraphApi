@@ -11,6 +11,6 @@ class QueryService {
     }
     
     GenericNode find(GenericQuery query) {
-        return new GenericNode(nodeService.find(query));
+        return nodeService.findGeneric(query);
     }
 }

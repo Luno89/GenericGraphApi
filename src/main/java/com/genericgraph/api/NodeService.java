@@ -63,7 +63,7 @@ class NodeService {
         String queryEnd = "RETURN n";
         
         String values = getValuesString(node.values, "=");
-        String labels = getLabelString(node);
+        String labels = getLabelString(node.label);
         String where = values != "" && labels != "" ? values + "AND " + labels : values + labels;
 
         String query = queryStart + where + queryEnd;
@@ -76,13 +76,16 @@ class NodeService {
         String queryEnd = "RETURN n";
 
         String values = getValuesString(query.nodes);
+        String labels = getLabelString(query.labels);
+        String where = values != "" && labels != "" ? values + "AND " + labels : values + labels;
 
-        String where = values;
         String queryString = queryStart + where + queryEnd;
 
-        System.out.println(queryString);
-
         return (Node)db.execute(queryString).next().get("n");
+    }
+
+    public GenericNode findGeneric(GenericQuery query) {
+        return new GenericNode(this.find(query));
     }
 
     private String getValuesString(HashMap<String,Object> values, String operator) {
@@ -113,10 +116,10 @@ class NodeService {
         return query;
     }
 
-    private String getLabelString(GenericNode node) {
-        if (node.label.size() > 0) {
+    private String getLabelString(ArrayList<String> labelList) {
+        if (labelList != null && labelList.size() > 0) {
             StringBuilder labels = new StringBuilder();
-            node.label.forEach(s -> {
+            labelList.forEach(s -> {
                 labels.append(":" + s);
             });
             return "n" + labels.toString() + " ";

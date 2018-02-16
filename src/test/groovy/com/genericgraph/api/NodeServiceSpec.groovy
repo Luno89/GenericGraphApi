@@ -125,9 +125,10 @@ class NodeServiceSpec extends Specification {
         GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach'])
         nodeService.write(zachZeman)
         nodeService.write(zachFish)
+        GenericQuery query = new GenericQuery(labels: ['person','otaku'],nodes: [new QueryParameter('name', '=', 'zach')])
 
         when:
-        GenericNode zachFishsNode = new GenericNode(nodeService.find(zachFish))
+        GenericNode zachFishsNode = nodeService.findGeneric(query)
 
         then:
         zachFishsNode.label.contains('otaku')
