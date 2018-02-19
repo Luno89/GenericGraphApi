@@ -5,9 +5,9 @@ public class QueryParameter {
     public Object value;
     public String comparator;
 
-    QueryParameter() {}
+    public QueryParameter() {}
 
-    QueryParameter(String paramaterName, String comparator, Object value ) {
+    public QueryParameter(String paramaterName, String comparator, Object value ) {
         this.paramaterName = paramaterName;
         this.comparator = comparator;
         this.value = value;

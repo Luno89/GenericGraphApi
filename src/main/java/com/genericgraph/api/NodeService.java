@@ -57,18 +57,16 @@ class NodeService {
         return true;
     }
 
-    //TODO:De-dup all this garbage
     public Node find(GenericNode node) {
-        String queryStart = "MATCH (n) WHERE ";
-        String queryEnd = "RETURN n";
-        
-        String values = getValuesString(node.values, "=");
-        String labels = getLabelString(node.label);
-        String where = values != "" && labels != "" ? values + "AND " + labels : values + labels;
+        GenericQuery query = new GenericQuery();
 
-        String query = queryStart + where + queryEnd;
-        
-        return (Node)db.execute(query).next().get("n");
+        query.labels = node.label;
+        query.nodes = new ArrayList<>();
+        node.values.forEach((k,v) -> {
+            query.nodes.add(new QueryParameter(k,"=",v));
+        });
+
+        return find(query);
     }
 
     public Node find(GenericQuery query) {
@@ -86,20 +84,6 @@ class NodeService {
 
     public GenericNode findGeneric(GenericQuery query) {
         return new GenericNode(this.find(query));
-    }
-
-    private String getValuesString(HashMap<String,Object> values, String operator) {
-        StringBuilder valuesString = new StringBuilder();
-        values.forEach((k,v) -> {
-            String value = v instanceof Integer ? v.toString() : "'" + v + "'";
-            valuesString.append("n." + k + " "+ operator +" " + value + " AND ");
-        });
-
-        String query = "";
-        if (valuesString.length() > 4) {
-            query = valuesString.toString().substring(0, valuesString.length()-4);
-        }
-        return query;
     }
 
     private String getValuesString(ArrayList<QueryParameter> parameters) {
@@ -139,15 +123,20 @@ class NodeService {
         return relationshipResults;
     }
 
-    public ArrayList<org.neo4j.graphdb.Relationship> findRelationships(String name, String operator, HashMap<String,Object> values) {
+    public ArrayList<org.neo4j.graphdb.Relationship> findRelationships(GenericQuery query) {
         ArrayList<org.neo4j.graphdb.Relationship> relationshipResults = new ArrayList<>();
 
         String whereString = "";
-        if(values != null && values.size() > 0) {
-            whereString = "WHERE " + getValuesString(values, operator);
+        if(query.relationships != null && query.relationships.size() > 0) {
+            whereString = "WHERE " + getValuesString(query.relationships);
         }
 
-        Result result = db.execute("MATCH ()-[n:"+ name + "]-() " + whereString + " RETURN n");
+        String labels = "";
+        if(query.labels != null && query.labels.size() > 0) {
+            labels = getLabelString(query.labels);
+        }
+
+        Result result = db.execute("MATCH ()-["+ labels + "]-() " + whereString + " RETURN n");
         
         ResourceIterator<org.neo4j.graphdb.Relationship> relationships = result.columnAs("n");
         relationships.forEachRemaining(it -> {

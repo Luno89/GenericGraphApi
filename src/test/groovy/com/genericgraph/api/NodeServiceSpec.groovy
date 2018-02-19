@@ -177,9 +177,10 @@ class NodeServiceSpec extends Specification {
         nodeService.write(zachFish)
         nodeService.writeRelationship(zachZeman, zzKnowsZfInMo, zachFish)
         nodeService.writeRelationship(zachZeman, zzKnowsZfInWV, zachFish)
+        GenericQuery query = new GenericQuery(labels: ['knows'], relationships: [new QueryParameter('years','>',9)])
 
         when:
-        org.neo4j.graphdb.Relationship zachKnowingZachInWV = nodeService.findRelationships('knows','>',['years':9])[0]
+        org.neo4j.graphdb.Relationship zachKnowingZachInWV = nodeService.findRelationships(query)[0]
 
         then:
         zachKnowingZachInWV.getType().name() == 'knows'
