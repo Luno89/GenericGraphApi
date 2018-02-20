@@ -187,7 +187,7 @@ class NodeServiceSpec extends Specification {
         zachKnowingZachInWV.getProperty('where') == 'WV'
     }
 
-    def "can find nodes on generic query" () {
+    def "can find node on generic query" () {
         given:
         GenericNode zachZeman = new GenericNode(label:['person', 'furry'], values:['name':'zach', 'age':32])
         GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach', 'age':27])
@@ -205,5 +205,25 @@ class NodeServiceSpec extends Specification {
 
         then:
         zachZemansNode.getProperty('age') == 32
+    }
+
+    def "can find nodes on generic query" () {
+        given:
+        GenericNode zachZeman = new GenericNode(label:['person', 'furry'], values:['name':'zach', 'age':32])
+        GenericNode zachFish = new GenericNode(label:['person', 'otaku'], values:['name':'zach', 'age':27])
+        GenericRelationship zzKnowsZfInMo = new GenericRelationship(name:'knows')
+        zzKnowsZfInMo.values = ['years':7, 'where':'MO']
+        GenericRelationship zzKnowsZfInWV = new GenericRelationship(name:'knows')
+        zzKnowsZfInWV.values = ['years':10, 'where':'WV']
+        nodeService.write(zachZeman)
+        nodeService.write(zachFish)
+        nodeService.writeRelationship(zachZeman, zzKnowsZfInMo, zachFish)
+        nodeService.writeRelationship(zachZeman, zzKnowsZfInWV, zachFish)
+
+        when:
+        ArrayList<org.neo4j.graphdb.Node> nodes = nodeService.findAll(new GenericQuery(nodes:[new QueryParameter('name', '=', 'zach')]))
+
+        then:
+        nodes.size() == 2
     }
 }
