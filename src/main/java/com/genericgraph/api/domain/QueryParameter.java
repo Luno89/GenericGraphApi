@@ -15,7 +15,11 @@ public class QueryParameter {
 
     @Override
     public String toString() {
-        String valueString = this.value instanceof Integer ? this.value.toString() : "'" + this.value + "'";
-        return "n." + this.paramaterName + " " + this.comparator + " " + valueString;
+        return toStringWithId("n");
+    }
+
+    public String toStringWithId(String id) {
+        String valueString = this.value instanceof Integer ? this.value.toString() : "\"" + this.value + "\"";
+        return id + "." + this.paramaterName + " " + this.comparator + " " + valueString;
     }
 }

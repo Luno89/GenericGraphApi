@@ -20,4 +20,12 @@ class GenericQuerySpec extends Specification {
         then:
         result == "MATCH (n) WHERE n.name = 'zach' RETURN n"
     }
+
+    def "Can build query with relationships" () {
+        when:
+        String result = new GenericQuery.Builder(new GenericQuery(relationships:[new QueryParameter('years','>',9)])).build()
+
+        then:
+        result == "MATCH ()- WHERE n.years > 9 RETURN n"
+    }
 }

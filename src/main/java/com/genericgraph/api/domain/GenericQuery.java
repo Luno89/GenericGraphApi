@@ -1,6 +1,6 @@
 package com.genericgraph.api.domain;
 
-import java.util.*;
+import java.util.ArrayList;
 
 public class GenericQuery {
     public ArrayList<String> labels;
@@ -44,9 +44,14 @@ public class GenericQuery {
             return this;
         }
 
+        Builder withRelationships(ArrayList<QueryParameter> parameters) {
+            return this;
+        }
+
         public String build() {
             withLabels(this.genericQuery.labels);
             withValues(this.genericQuery.nodes);
+            withRelationships(this.genericQuery.relationships);
             String where = values != "" && labels != "" ? values + "AND " + labels : values + labels;
             return queryStart + where + queryEnd;
         }
