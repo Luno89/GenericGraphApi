@@ -18,14 +18,30 @@ class GenericQuerySpec extends Specification {
         String result = new GenericQuery.Builder(new GenericQuery(nodes:[new QueryParameter('name','=','zach')])).build()
 
         then:
-        result == "MATCH (n) WHERE n.name = 'zach' RETURN n"
+        result == 'MATCH (n) WHERE n.name = "zach" RETURN n'
     }
 
-    def "Can build query with relationships" () {
+    def "Can build query with relationship" () {
         when:
-        String result = new GenericQuery.Builder(new GenericQuery(relationships:[new QueryParameter('years','>',9)])).build()
+        String result = new GenericQuery.Builder(new GenericQuery(relationships:[new GenericQueryRelationship(label:'knows', parameters:[new QueryParameter('years','>',9)])])).build()
 
         then:
-        result == "MATCH ()- WHERE n.years > 9 RETURN n"
+        result == "MATCH ()-[n:knows]-() WHERE n.years > 9 RETURN n"
+    }
+
+    def "Can build query with directed relationship" () {
+        when:
+        String result = new GenericQuery.Builder(new GenericQuery(
+            relationships:
+                [new GenericQueryRelationship(
+                    fromNode: new GenericQueryNode(labels:['coolguy'], parameters:[new QueryParameter('name','=','zach')]),
+                    toNode: new GenericQueryNode(labels:['astronaut'], parameters:[new QueryParameter('name','=','jim')]),
+                    label:'knows', 
+                    parameters:[new QueryParameter('years','>',9)])
+                ])
+            ).build()
+
+        then:
+        result == 'MATCH (nl:coolguy)-[n:knows]-(nr:astronaut) WHERE nl.name = "zach" AND n.years > 9 AND nr.name = "jim" RETURN n'
     }
 }

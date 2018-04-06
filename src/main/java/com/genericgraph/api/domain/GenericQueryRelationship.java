@@ -4,21 +4,31 @@ import java.util.ArrayList;
 
 public class GenericQueryRelationship {
     String id;
-    // String toId;
-    // String fromId;
+    GenericQueryNode fromNode;
+    GenericQueryNode toNode;
     String label;
     ArrayList<QueryParameter> parameters;
 
 
     public static class Builder {
         GenericQueryRelationship relationship;
+        GenericQueryNode fromNode;
+        GenericQueryNode toNode;
 
         public Builder(GenericQueryRelationship relationship) {
             this.relationship = relationship;
+            this.fromNode = relationship.fromNode;
+            this.toNode = relationship.toNode;
         }
 
         public String buildLabel() {
-            return "[" + relationship.id + ":" + relationship.label + "]";
+            String fromLabelString = "";
+            String toLabelString = "";
+            
+            fromLabelString = new GenericQueryNode.Builder(fromNode, getFromId()).buildLabels();
+            toLabelString = new GenericQueryNode.Builder(toNode, getToId()).buildLabels();
+
+            return "(" + fromLabelString + ")-[" + relationship.id + ":" + relationship.label + "]-(" + toLabelString + ")";
         }
 
         public String buildWhere() {
@@ -29,7 +39,15 @@ public class GenericQueryRelationship {
             relationship.parameters.forEach(p -> {
                 stringBuilder.append(p.toStringWithId(id) + " AND ");
             });
-            return stringBuilder.toString().substring(0, stringBuilder.length() - 4);
+            return stringBuilder.toString();
+        }
+
+        private String getFromId() {
+            return relationship.id + "f";
+        }
+
+        private String getToId() {
+            return relationship.id + "t";
         }
     }
 }

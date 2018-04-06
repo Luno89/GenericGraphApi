@@ -14,7 +14,18 @@ class GenericQueryRelationshipSpec extends Specification {
         String labels = new GenericQueryRelationship.Builder(relationship).buildLabel()
         
         then:
-        labels == '[n:knows]'
+        labels == '()-[n:knows]-()'
+    }
+
+    def "labes are written to label query part with to and from nodes" () {
+        given:
+        relationship = new GenericQueryRelationship(id:'n', label:'knows', fromNode: new GenericQueryNode(labels:['doctor']), toNode: new GenericQueryNode(labels:['DVM']))
+
+        when:
+        String labels = new GenericQueryRelationship.Builder(relationship).buildLabel()
+        
+        then:
+        labels == '(nf:doctor)-[n:knows]-(nt:DVM)'
     }
 
     def "query paramaters are writen to where query part" () {
@@ -25,6 +36,7 @@ class GenericQueryRelationshipSpec extends Specification {
         String labels = new GenericQueryRelationship.Builder(relationship).buildWhere()
         
         then:
-        labels == 'n.year > 9 AND n.from = "WV" '
+        labels == 'n.year > 9 AND n.from = "WV" AND '
     }
+
 }
